@@ -84,6 +84,7 @@ fun CodeReviewScreen(
                     onCodeChange  = { codeInput = it },
                     onReviewClick = onReviewClick,
                     isLoading     = isLoading,
+                    isDark        = isDarkTheme,
                     modifier      = Modifier.fillMaxSize()
                 )
             },

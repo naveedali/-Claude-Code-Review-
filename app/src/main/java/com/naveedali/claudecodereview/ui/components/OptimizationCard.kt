@@ -53,7 +53,7 @@ fun OptimizationCard(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    val style = optStyles[optimization.type] ?: optStyles[OptimizationType.BEST_PRACTICE]!!
+    val style = optStyles[optimization.type] ?: optStyles.getValue(OptimizationType.BEST_PRACTICE)
     val hasSnippets = optimization.beforeCode != null || optimization.afterCode != null
 
     // Subtle surface tint derived from the type accent

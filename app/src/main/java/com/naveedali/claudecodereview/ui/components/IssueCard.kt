@@ -57,7 +57,7 @@ fun IssueCard(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    val style    = severityStyles[issue.severity] ?: severityStyles[IssueSeverity.INFO]!!
+    val style    = severityStyles[issue.severity] ?: severityStyles.getValue(IssueSeverity.INFO)
     val container = if (isDark) style.containerDark else style.containerLight
 
     Column(

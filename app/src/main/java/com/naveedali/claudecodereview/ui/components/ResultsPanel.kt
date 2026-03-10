@@ -16,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.naveedali.claudecodereview.model.CodeIssue
+import com.naveedali.claudecodereview.model.Optimization
 import com.naveedali.claudecodereview.model.ReviewResult
 import com.naveedali.claudecodereview.model.mockReviewResult
 import com.naveedali.claudecodereview.ui.theme.*
@@ -182,7 +184,7 @@ private fun BadgedTab(
  */
 @Composable
 private fun IssuesList(
-    issues: List<com.naveedali.claudecodereview.model.CodeIssue>,
+    issues: List<CodeIssue>,
     isDark: Boolean
 ) {
     if (issues.isEmpty()) {
@@ -209,7 +211,7 @@ private fun IssuesList(
  */
 @Composable
 private fun OptimizationsList(
-    optimizations: List<com.naveedali.claudecodereview.model.Optimization>,
+    optimizations: List<Optimization>,
     isDark: Boolean
 ) {
     if (optimizations.isEmpty()) {
@@ -280,7 +282,7 @@ private fun RefactorBar(onRefactorClick: () -> Unit) {
         ) {
             Icon(
                 imageVector        = Icons.Default.Build,
-                contentDescription = null,
+                contentDescription = "Refactor code",
                 modifier           = Modifier.size(16.dp)
             )
             Spacer(Modifier.width(8.dp))
