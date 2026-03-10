@@ -4,44 +4,35 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.*
+import com.naveedali.claudecodereview.ui.screens.CodeReviewScreen
 import com.naveedali.claudecodereview.ui.theme.ClaudeCodeReviewTheme
 
+/**
+ * Single-activity entry point.
+ *
+ * Theme state is owned here so it survives recomposition and can be toggled
+ * from anywhere in the tree if needed.  [isSystemInDarkTheme] provides the
+ * default so the very first launch respects the device setting.
+ */
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
         setContent {
-            ClaudeCodeReviewTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+            // Read the system preference once as the initial value
+            val systemDark = isSystemInDarkTheme()
+            var isDarkTheme by remember { mutableStateOf(systemDark) }
+
+            ClaudeCodeReviewTheme(darkTheme = isDarkTheme) {
+                CodeReviewScreen(
+                    isDarkTheme   = isDarkTheme,
+                    onToggleTheme = { isDarkTheme = !isDarkTheme }
+                )
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    ClaudeCodeReviewTheme {
-        Greeting("Android")
     }
 }
