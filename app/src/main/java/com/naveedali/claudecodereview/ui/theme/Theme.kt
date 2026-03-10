@@ -1,58 +1,70 @@
 package com.naveedali.claudecodereview.ui.theme
 
-import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+// ── Dark Color Scheme ─────────────────────────────────────────────────────────
+private val AppDarkColorScheme = darkColorScheme(
+    primary               = BrandPrimaryDark,
+    onPrimary             = BrandOnPrimary,
+    primaryContainer      = BrandPrimaryContainer,
+    onPrimaryContainer    = BrandOnPrimary,
+
+    background            = AppBgDark,
+    onBackground          = CodeTextDark,
+
+    surface               = SurfaceDark,
+    onSurface             = CodeTextDark,
+    surfaceVariant        = SurfaceVariantDark,
+    onSurfaceVariant      = LineNumberTextDark,
+
+    outline               = DividerDark,
+    error                 = ErrorRed,
+    onError               = OnErrorDark,
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+// ── Light Color Scheme ────────────────────────────────────────────────────────
+private val AppLightColorScheme = lightColorScheme(
+    primary               = BrandPrimary,
+    onPrimary             = BrandOnPrimary,
+    primaryContainer      = BrandPrimaryContainerLight,
+    onPrimaryContainer    = BrandPrimary,
 
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    background            = AppBgLight,
+    onBackground          = CodeTextLight,
+
+    surface               = SurfaceLight,
+    onSurface             = CodeTextLight,
+    surfaceVariant        = SurfaceVariantLight,
+    onSurfaceVariant      = LineNumberTextLight,
+
+    outline               = DividerLight,
+    error                 = ErrorRed,
+    onError               = OnErrorLight,
 )
 
+/**
+ * App-wide theme wrapper.
+ *
+ * Usage:
+ *   ClaudeCodeReviewTheme(darkTheme = isDark) { ... }
+ *
+ * [darkTheme] defaults to the system setting so previews and the real device
+ * both behave correctly without extra plumbing.
+ */
 @Composable
 fun ClaudeCodeReviewTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
+    val colorScheme = if (darkTheme) AppDarkColorScheme else AppLightColorScheme
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
-        content = content
+        typography  = Typography,
+        content     = content
     )
 }
