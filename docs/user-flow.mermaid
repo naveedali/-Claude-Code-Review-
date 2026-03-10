@@ -1,0 +1,28 @@
+flowchart LR
+    subgraph "Phase 1 — UI Only"
+        A["Open App"] --> B["Code Editor Panel"]
+        B --> C["Paste / Type<br/>Kotlin Code"]
+        C --> D{"Tap<br/>Review Code"}
+        D --> E["Mock results<br/>appear instantly"]
+        E --> F["Issues Tab<br/><i>severity-coded cards</i>"]
+        E --> G["Optimizations Tab<br/><i>before/after diffs</i>"]
+        F --> H["Expand card<br/><i>see fix suggestion</i>"]
+        G --> I["Expand card<br/><i>see code snippets</i>"]
+        H --> J{"Tap<br/>Refactor Code"}
+        I --> J
+        J --> K["<i>Phase 2: AI call</i>"]
+    end
+
+    subgraph "Theme"
+        L["Toggle icon<br/>in top bar"] --> M["Switch between<br/>Light / Dark"]
+    end
+
+    subgraph "Adaptive Layout"
+        N["Portrait<br/><i>phone</i>"] --> O["Editor on top<br/>Results below"]
+        P["Landscape<br/><i>tablet</i>"] --> Q["Editor left<br/>Results right"]
+    end
+
+    style A fill:#6C5CE7,stroke:#4A3DB5,color:#fff
+    style D fill:#FFB86C,stroke:#3D2800,color:#000
+    style J fill:#FF79C6,stroke:#6C5CE7,color:#000
+    style K fill:#363B54,stroke:#6272A4,color:#6272A4,stroke-dasharray: 5 5

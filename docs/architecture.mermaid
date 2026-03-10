@@ -1,0 +1,89 @@
+graph TD
+    subgraph "MainActivity"
+        A["MainActivity<br/><i>owns isDarkTheme state</i>"]
+    end
+
+    subgraph "Theme Layer"
+        T1["ClaudeCodeReviewTheme"]
+        T2["Color.kt<br/><i>semantic palette</i>"]
+        T3["Type.kt<br/><i>typography + code styles</i>"]
+        T1 --> T2
+        T1 --> T3
+    end
+
+    A --> T1
+    T1 --> S
+
+    subgraph "Screen Layer"
+        S["CodeReviewScreen<br/><i>owns codeInput, reviewResult, isLoading</i>"]
+    end
+
+    S --> SP
+
+    subgraph "Layout"
+        SP["SplitPaneLayout<br/><i>portrait = stacked, landscape = side-by-side</i>"]
+    end
+
+    SP --> CEP
+    SP --> RP
+
+    subgraph "Editor Pane"
+        CEP["CodeEditorPanel"]
+        CEP1["LineNumberColumn"]
+        CEP2["BasicTextField<br/><i>monospace, styled</i>"]
+        CEP3["EditorBottomBar<br/><i>line count + Review button</i>"]
+        CEP --> CEP1
+        CEP --> CEP2
+        CEP --> CEP3
+    end
+
+    subgraph "Results Pane"
+        RP["ResultsPanel"]
+        RP1["TabRow<br/><i>Issues / Optimizations</i>"]
+        RP2["IssuesList"]
+        RP3["OptimizationsList"]
+        RP4["RefactorBar<br/><i>Refactor Code button</i>"]
+        RP --> RP1
+        RP --> RP2
+        RP --> RP3
+        RP --> RP4
+    end
+
+    RP2 --> IC
+    RP3 --> OC
+
+    subgraph "Reusable Cards"
+        IC["IssueCard<br/><i>expandable, severity-coded</i>"]
+        IC1["SeverityBadge"]
+        IC2["LinePill"]
+        IC --> IC1
+        IC --> IC2
+
+        OC["OptimizationCard<br/><i>expandable, before/after diff</i>"]
+        OC1["OptTypeBadge"]
+        OC2["CodeSnippetBox"]
+        OC --> OC1
+        OC --> OC2
+    end
+
+    subgraph "Data Models"
+        M1["CodeIssue<br/><i>+ IssueSeverity enum</i>"]
+        M2["Optimization<br/><i>+ OptimizationType enum</i>"]
+        M3["ReviewResult<br/><i>+ mock data</i>"]
+        M3 --> M1
+        M3 --> M2
+    end
+
+    S -.->|"reads/writes"| M3
+
+    classDef screen fill:#6C5CE7,stroke:#4A3DB5,color:#fff
+    classDef component fill:#2E3148,stroke:#6272A4,color:#CDD6F4
+    classDef model fill:#0D2F36,stroke:#8BE9FD,color:#8BE9FD
+    classDef theme fill:#3D2800,stroke:#FFB86C,color:#FFB86C
+    classDef layout fill:#0A2E18,stroke:#50FA7B,color:#50FA7B
+
+    class A,S screen
+    class CEP,CEP1,CEP2,CEP3,RP,RP1,RP2,RP3,RP4,IC,IC1,IC2,OC,OC1,OC2 component
+    class M1,M2,M3 model
+    class T1,T2,T3 theme
+    class SP layout

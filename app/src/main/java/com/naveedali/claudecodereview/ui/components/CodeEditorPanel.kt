@@ -69,13 +69,12 @@ fun CodeEditorPanel(
     onCodeChange: (String) -> Unit,
     onReviewClick: () -> Unit,
     isLoading: Boolean = false,
+    isDark: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     // ── Shared scroll so line numbers and code scroll together ────────────────
     val verticalScrollState   = rememberScrollState()
     val horizontalScrollState = rememberScrollState()
-
-    val isDark = !MaterialTheme.colorScheme.background.equals(AppBgLight)
 
     val editorBg      = if (isDark) EditorBgDark      else EditorBgLight
     val lineNumberBg  = if (isDark) LineNumberBgDark  else LineNumberBgLight
@@ -246,7 +245,7 @@ private fun EditorBottomBar(
             } else {
                 Icon(
                     imageVector         = Icons.Default.PlayArrow,
-                    contentDescription  = null,
+                    contentDescription  = "Review code",
                     modifier            = Modifier.size(16.dp)
                 )
                 Spacer(Modifier.width(6.dp))
@@ -266,6 +265,7 @@ private fun CodeEditorPanelDarkPreview() {
             code          = PLACEHOLDER_CODE,
             onCodeChange  = {},
             onReviewClick = {},
+            isDark        = true,
             modifier      = Modifier
                 .fillMaxWidth()
                 .height(420.dp)
@@ -281,6 +281,7 @@ private fun CodeEditorPanelLightPreview() {
             code          = PLACEHOLDER_CODE,
             onCodeChange  = {},
             onReviewClick = {},
+            isDark        = false,
             modifier      = Modifier
                 .fillMaxWidth()
                 .height(420.dp)
