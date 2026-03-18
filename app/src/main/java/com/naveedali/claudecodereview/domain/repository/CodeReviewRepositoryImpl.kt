@@ -37,11 +37,14 @@ class CodeReviewRepositoryImpl(
         }
 
     override suspend fun refactor(code: String, reviewResult: ReviewResult): String {
-        // TODO Phase 3: replace with AI service call
-        //   return aiService.refactor(code, reviewResult.issues, reviewResult.optimizations)
-        throw NotImplementedError(
-            "Refactoring requires Phase 3 AI integration. " +
-            "Wire up an AI service in CodeReviewRepositoryImpl.refactor()."
+        // AI refactoring is only available when an OpenAI API key is present.
+        // The factory (CodeReviewViewModelFactory) automatically picks
+        // OpenAiCodeReviewRepository when a key exists in local.properties.
+        // Without a key we can't refactor, so we throw a clear error that the
+        // ViewModel will surface as a Snackbar message.
+        throw UnsupportedOperationException(
+            "AI refactoring requires an OpenAI API key.\n" +
+            "Add OPENAI_API_KEY=sk-... to local.properties and rebuild."
         )
     }
 

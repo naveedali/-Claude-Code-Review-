@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -22,10 +24,16 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // ── Phase 3: OpenAI API key ───────────────────────────────────────────
-        // Reads OPENAI_API_KEY from local.properties (never committed to git).
-        // Access at runtime via BuildConfig.OPENAI_API_KEY.
-        // If the key is absent the app falls back to the local rule-based analyser.
-        val openAiKey = (project.findProperty("OPENAI_API_KEY") as? String) ?: ""
+        // local.properties is a Java Properties file — it must be loaded explicitly.
+        // project.findProperty() only reads gradle.properties, NOT local.properties,
+        // so we parse the file ourselves using java.util.Properties.
+        val localProps = Properties().also { props ->
+            val localPropsFile = rootProject.file("local.properties")
+            if (localPropsFile.exists()) {
+                props.load(localPropsFile.inputStream())
+            }
+        }
+        val openAiKey = localProps.getProperty("OPENAI_API_KEY") ?: ""
         buildConfigField("String", "OPENAI_API_KEY", "\"$openAiKey\"")
     }
 

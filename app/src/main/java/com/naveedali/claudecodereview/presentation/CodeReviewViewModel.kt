@@ -128,9 +128,13 @@ class CodeReviewViewModel(
                 val updatedResult = result.copy(refactoredCode = refactoredCode)
                 lastResult = updatedResult
                 ReviewUiState.Success(updatedResult)
-            } catch (e: NotImplementedError) {
-                // Kept for safety; shouldn't reach here with Phase 3 repository
-                ReviewUiState.Error("Refactoring requires Phase 3 AI integration.")
+            } catch (e: UnsupportedOperationException) {
+                // Thrown by CodeReviewRepositoryImpl when no API key is configured.
+                // Surface a helpful instruction rather than a raw exception message.
+                ReviewUiState.Error(
+                    "AI refactoring needs an OpenAI API key. " +
+                    "Add OPENAI_API_KEY=sk-... to local.properties and rebuild."
+                )
             } catch (e: Exception) {
                 ReviewUiState.Error("Refactor failed: ${e.message ?: "Unknown error"}")
             }
