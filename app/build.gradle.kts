@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    // kotlinx.serialization — needed for @Serializable data classes (Phase 3)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -18,6 +20,13 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // ── Phase 3: OpenAI API key ───────────────────────────────────────────
+        // Reads OPENAI_API_KEY from local.properties (never committed to git).
+        // Access at runtime via BuildConfig.OPENAI_API_KEY.
+        // If the key is absent the app falls back to the local rule-based analyser.
+        val openAiKey = (project.findProperty("OPENAI_API_KEY") as? String) ?: ""
+        buildConfigField("String", "OPENAI_API_KEY", "\"$openAiKey\"")
     }
 
     buildTypes {
@@ -38,6 +47,8 @@ android {
     }
     buildFeatures {
         compose = true
+        // Enables BuildConfig generation (needed for BuildConfig.OPENAI_API_KEY)
+        buildConfig = true
     }
 }
 
@@ -54,6 +65,13 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.extended)
+    // ── Phase 3: networking + JSON ────────────────────────────────────────────
+    // OkHttp: HTTP client for the OpenAI Chat Completions call
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)          // logs requests/responses in debug builds
+    // kotlinx.serialization: encode request / decode response JSON
+    implementation(libs.kotlinx.serialization.json)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

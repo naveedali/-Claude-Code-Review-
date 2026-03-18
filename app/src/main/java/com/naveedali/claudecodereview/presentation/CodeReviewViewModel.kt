@@ -98,9 +98,15 @@ class CodeReviewViewModel(
     /**
      * Requests AI-driven refactoring of [code].
      *
-     * Phase 2: emits an informational error so the user sees a clear message
-     *          rather than a silent no-op.
-     * Phase 3: will call [repository].refactor() and emit the refactored code.
+     * Phase 3 behaviour:
+     *  1. Emits [ReviewUiState.Loading].
+     *  2. Calls [repository.refactor] — hits GPT-4o with a focused refactoring prompt.
+     *  3. Merges the returned string into a copy of [lastResult] so the issue list
+     *     is preserved alongside the new refactored source.
+     *  4. Emits [ReviewUiState.Success] with the updated [ReviewResult].
+     *
+     * The UI detects [ReviewResult.refactoredCode] != null and offers a
+     * confirmation dialog — "Apply refactored code to editor?".
      *
      * @param code Raw Kotlin source text to refactor.
      */
@@ -114,12 +120,17 @@ class CodeReviewViewModel(
         viewModelScope.launch {
             _uiState.value = ReviewUiState.Loading
             _uiState.value = try {
-                repository.refactor(code, result)
-                // TODO Phase 3: emit a new UiState carrying the refactored code
-                ReviewUiState.Success(result)           // fall back to last result for now
+                // Phase 3: repository.refactor() returns the improved Kotlin source
+                val refactoredCode = repository.refactor(code, result)
+
+                // Merge into the existing result — the issue list is preserved so
+                // the user still sees the review findings alongside the refactored code.
+                val updatedResult = result.copy(refactoredCode = refactoredCode)
+                lastResult = updatedResult
+                ReviewUiState.Success(updatedResult)
             } catch (e: NotImplementedError) {
-                // Expected in Phase 2 — surface a friendly message
-                ReviewUiState.Error("Refactoring will be available in Phase 3 (AI integration).")
+                // Kept for safety; shouldn't reach here with Phase 3 repository
+                ReviewUiState.Error("Refactoring requires Phase 3 AI integration.")
             } catch (e: Exception) {
                 ReviewUiState.Error("Refactor failed: ${e.message ?: "Unknown error"}")
             }

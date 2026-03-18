@@ -22,28 +22,30 @@ import com.naveedali.claudecodereview.ui.theme.ClaudeCodeReviewTheme
 /**
  * Root screen composable for the code-review tool.
  *
- * State ownership (Phase 2)
+ * State ownership (Phase 3)
  * ──────────────────────────
- *  • [codeInput]  — local Compose state (editor text, ephemeral, UI-only)
- *  • [uiState]    — collected from [CodeReviewViewModel] (survives rotation)
+ *  • [codeInput]              — local Compose state (editor text, ephemeral, UI-only)
+ *  • [uiState]                — collected from [CodeReviewViewModel] (survives rotation)
+ *  • [pendingRefactoredCode]  — local flag; set when a new refactored result arrives,
+ *                               cleared when the dialog is confirmed or dismissed.
  *
- * Why split ownership?
- *  • Editor text is pure UI — no reason to round-trip through the ViewModel.
- *    It resets on back-navigation, which is the expected behaviour.
- *  • Review results are business output — they should survive configuration
- *    changes (rotation). The ViewModel outlives the Composable.
+ * Phase 3 data flow
+ * ─────────────────
  *
- * Data flow
- * ─────────
- *
- *   User types   ──▶  codeInput (local state)
- *   "Review Code" ──▶  viewModel.review(codeInput)
- *                              │
- *                      Loading ──▶ Success / Error
- *                              │
- *                      uiState (StateFlow) collected here
- *                              │
- *                      isLoading + reviewResult derived ──▶ child panels
+ *   User taps "Review Code"
+ *         │
+ *   viewModel.review(codeInput) → OpenAI GPT-4o
+ *         │
+ *   ReviewUiState.Success(result)
+ *         │
+ *   result.refactoredCode != null  ──▶  pendingRefactoredCode = refactoredCode
+ *         │                                    │
+ *   issues + optimizations shown        RefactorDialog appears
+ *                                              │
+ *                              ┌──────────────┴──────────────┐
+ *                              │ "Apply"                      │ "Dismiss"
+ *                              ▼                              ▼
+ *                    codeInput = refactoredCode        dialog closed
  *
  * @param isDarkTheme   Current theme mode, owned by MainActivity.
  * @param onToggleTheme Called when the user taps the sun/moon icon.
@@ -70,20 +72,68 @@ fun CodeReviewScreen(
     val isLoading    = uiState is ReviewUiState.Loading
     val reviewResult = (uiState as? ReviewUiState.Success)?.result ?: ReviewResult()
 
+    // ── Phase 3: Refactored code dialog state ─────────────────────────────────
+    //
+    // Why a separate local variable instead of reading reviewResult.refactoredCode
+    // directly?
+    //
+    // Reading refactoredCode directly would show the dialog on every recomposition
+    // once a result with refactoredCode arrives — including after the user dismisses
+    // it.  By copying the value into [pendingRefactoredCode] and clearing it on
+    // dismiss/confirm, the dialog appears exactly once per new refactor result.
+    var pendingRefactoredCode by remember { mutableStateOf<String?>(null) }
+
     // ── Snackbar ──────────────────────────────────────────────────────────────
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // LaunchedEffect re-runs whenever uiState changes.  When the new state is
-    // Error, we show the message then ask the ViewModel to clear it — preventing
-    // the same Snackbar from re-appearing on the next recomposition.
+    // LaunchedEffect re-runs whenever uiState changes.
+    // Handles two transitions:
+    //  1. Error  → show Snackbar, then ask ViewModel to clear the error state.
+    //  2. Success with refactoredCode → set pendingRefactoredCode to trigger dialog.
+    //
+    // Using uiState as the key means the effect re-runs only when the state
+    // object changes identity — not on every recomposition.
     LaunchedEffect(uiState) {
-        if (uiState is ReviewUiState.Error) {
-            snackbarHostState.showSnackbar(
-                message  = (uiState as ReviewUiState.Error).message,
-                duration = SnackbarDuration.Long
-            )
-            viewModel.clearError()
+        when (val state = uiState) {
+            is ReviewUiState.Error -> {
+                snackbarHostState.showSnackbar(
+                    message  = state.message,
+                    duration = SnackbarDuration.Long
+                )
+                viewModel.clearError()
+            }
+            is ReviewUiState.Success -> {
+                // If the AI returned a refactored version, surface the dialog.
+                // We only trigger when the refactoredCode is non-null and not yet
+                // pending — prevents re-triggering if the user is still looking
+                // at the dialog when a recomposition happens.
+                val refactored = state.result.refactoredCode
+                if (refactored != null && pendingRefactoredCode == null) {
+                    pendingRefactoredCode = refactored
+                }
+            }
+            else -> Unit  // Idle / Loading — no side effects needed
         }
+    }
+
+    // ── "Apply Refactored Code?" dialog ───────────────────────────────────────
+    //
+    // Shown whenever [pendingRefactoredCode] is non-null (i.e. a new refactored
+    // version just arrived from the AI).
+    //
+    // Choices:
+    //  • "Apply"   — copies the refactored code into the editor, closes dialog
+    //  • "Dismiss" — closes dialog without changing the editor content
+    if (pendingRefactoredCode != null) {
+        RefactorApplyDialog(
+            onApply = {
+                codeInput = pendingRefactoredCode!!   // replace editor content
+                pendingRefactoredCode = null          // close dialog
+            },
+            onDismiss = {
+                pendingRefactoredCode = null          // close dialog, keep old code
+            }
+        )
     }
 
     // ── UI ────────────────────────────────────────────────────────────────────
@@ -118,6 +168,60 @@ fun CodeReviewScreen(
             }
         )
     }
+}
+
+// ── "Apply Refactored Code?" dialog ───────────────────────────────────────────
+
+/**
+ * Material 3 [AlertDialog] that asks the user whether to replace the editor
+ * content with the AI-generated refactored code.
+ *
+ * Why a dialog instead of an inline button in the results panel?
+ * ──────────────────────────────────────────────────────────────
+ * Applying the refactored code is a destructive action — it overwrites the
+ * user's current input.  A confirmation dialog follows the Material Design
+ * principle of "preventing errors by requiring confirmation for irreversible
+ * or significant actions."
+ *
+ * The dialog is stateless — it just fires [onApply] or [onDismiss] and the
+ * caller owns the state.  This makes it easy to test and reuse.
+ *
+ * @param onApply   Called when the user confirms ("Apply").
+ * @param onDismiss Called when the user cancels ("Keep Original") or dismisses.
+ */
+@Composable
+private fun RefactorApplyDialog(
+    onApply: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text  = "Apply Refactored Code?",
+                style = MaterialTheme.typography.titleMedium
+            )
+        },
+        text = {
+            Text(
+                text  = "The AI has produced a refactored version of your code. " +
+                        "Apply it to the editor? Your original code will be replaced.",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        },
+        confirmButton = {
+            // Filled button — the primary / recommended action
+            Button(onClick = onApply) {
+                Text("Apply")
+            }
+        },
+        dismissButton = {
+            // Outlined button — the secondary / safe action
+            OutlinedButton(onClick = onDismiss) {
+                Text("Keep Original")
+            }
+        }
+    )
 }
 
 // ── Top AppBar ────────────────────────────────────────────────────────────────
@@ -177,5 +281,13 @@ private fun TopBarDarkPreview() {
 private fun TopBarLightPreview() {
     ClaudeCodeReviewTheme(darkTheme = false) {
         CodeReviewTopBar(isDarkTheme = false, onToggleTheme = {})
+    }
+}
+
+@Preview(showBackground = true, name = "Refactor Dialog", widthDp = 400)
+@Composable
+private fun RefactorDialogPreview() {
+    ClaudeCodeReviewTheme(darkTheme = false) {
+        RefactorApplyDialog(onApply = {}, onDismiss = {})
     }
 }
