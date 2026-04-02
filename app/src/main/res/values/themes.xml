@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!--
+        Window theme — applied before Compose paints its first frame.
+        Sets the status-bar and window background to the crimson brand colour
+        so there is no white/purple flash on cold start.
 
-    <style name="Theme.ClaudeCodeReview" parent="android:Theme.Material.Light.NoActionBar" />
+        Compose's ClaudeCodeReviewTheme takes over from here.
+    -->
+    <style name="Theme.ClaudeCodeReview" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Window background: brand crimson for light, near-black for dark  -->
+        <item name="android:windowBackground">@color/brand_primary</item>
+        <!-- Status bar matches the crimson top bar -->
+        <item name="android:statusBarColor">@color/brand_primary</item>
+        <item name="android:navigationBarColor">@color/brand_primary</item>
+    </style>
 </resources>
