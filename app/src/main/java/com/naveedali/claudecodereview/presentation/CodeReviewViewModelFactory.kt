@@ -1,9 +1,14 @@
 package com.naveedali.claudecodereview.presentation
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.naveedali.claudecodereview.BuildConfig
-import com.naveedali.claudecodereview.data.remote.OpenAiCodeReviewRepository
+import com.naveedali.claudecodereview.data.preferences.LlmPreferences
+import com.naveedali.claudecodereview.data.preferences.LlmProvider
+import com.naveedali.claudecodereview.data.remote.AiCodeReviewRepository
+import com.naveedali.claudecodereview.data.remote.ClaudeService
+import com.naveedali.claudecodereview.data.remote.GeminiService
+import com.naveedali.claudecodereview.data.remote.LlmService
 import com.naveedali.claudecodereview.data.remote.OpenAiService
 import com.naveedali.claudecodereview.domain.analyser.KotlinCodeAnalyser
 import com.naveedali.claudecodereview.domain.repository.CodeReviewRepository
@@ -12,47 +17,31 @@ import com.naveedali.claudecodereview.domain.repository.CodeReviewRepositoryImpl
 /**
  * Manual [ViewModelProvider.Factory] for [CodeReviewViewModel].
  *
- * Phase 3 — Smart repository selection
- * ────────────────────────────────────
- * The factory reads [BuildConfig.OPENAI_API_KEY] (populated from local.properties)
- * and selects the appropriate [CodeReviewRepository] implementation at runtime:
+ * Provider selection logic
+ * ────────────────────────
+ *  1. Read [LlmPreferences] → get selected provider + its API key.
+ *  2. If the key is non-blank → create the matching [LlmService] → wrap in [AiCodeReviewRepository].
+ *  3. If the key is blank    → fall back to offline [CodeReviewRepositoryImpl].
  *
- *  ┌────────────────────────────────────────────────────────┐
- *  │  OPENAI_API_KEY present  →  OpenAiCodeReviewRepository  │
- *  │  Key blank / missing     →  CodeReviewRepositoryImpl    │
- *  │                             (local rule-based fallback) │
- *  └────────────────────────────────────────────────────────┘
+ *  ┌──────────────────────────────────────────────────────────────┐
+ *  │  Preferences      Key present?   Repository used             │
+ *  ├──────────────────────────────────────────────────────────────┤
+ *  │  OPENAI + key     yes            AiCodeReviewRepository      │
+ *  │                                  (OpenAiService)             │
+ *  │  CLAUDE + key     yes            AiCodeReviewRepository      │
+ *  │                                  (ClaudeService)             │
+ *  │  GEMINI + key     yes            AiCodeReviewRepository      │
+ *  │                                  (GeminiService)             │
+ *  │  any  + no key    no             CodeReviewRepositoryImpl    │
+ *  │                                  (offline, rule-based)       │
+ *  └──────────────────────────────────────────────────────────────┘
  *
- * This means:
- *  • Developers can build and run the app without an API key — the
- *    rule-based analyser handles everything locally.
- *  • Adding a key to local.properties instantly switches to GPT-4o,
- *    with zero code changes needed.
- *
- * Dependency graph
- * ────────────────
- *
- *   With AI key:
- *     OpenAiService(apiKey)
- *           │
- *     OpenAiCodeReviewRepository(service)
- *           │
- *     CodeReviewViewModel(repository)
- *
- *   Without AI key:
- *     KotlinCodeAnalyser
- *           │
- *     CodeReviewRepositoryImpl(analyser)
- *           │
- *     CodeReviewViewModel(repository)
- *
- * Migration to Hilt
- * ─────────────────
- * This manual factory is fine for a small app.  When the dependency graph grows,
- * replace with @HiltViewModel + @Inject — Hilt generates the factory automatically
- * and handles the BuildConfig conditional via a @Provides method in a Module.
+ * @param context Used to open [SharedPreferences] via [LlmPreferences].
+ *                Pass [LocalContext.current] from any Composable.
  */
-class CodeReviewViewModelFactory : ViewModelProvider.Factory {
+class CodeReviewViewModelFactory(
+    private val context: Context
+) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -64,25 +53,28 @@ class CodeReviewViewModelFactory : ViewModelProvider.Factory {
     }
 
     /**
-     * Builds the correct [CodeReviewRepository] based on whether an API key exists.
+     * Reads [LlmPreferences] and builds the appropriate [CodeReviewRepository].
      *
-     * [BuildConfig.OPENAI_API_KEY] is an empty string when:
-     *  • The key is missing from local.properties entirely.
-     *  • The key line exists but has no value: `OPENAI_API_KEY=`
+     * Called once when the ViewModel is first created — the result is cached
+     * inside the ViewModel and survives configuration changes.
      */
     private fun buildRepository(): CodeReviewRepository {
-        val apiKey = BuildConfig.OPENAI_API_KEY
+        val prefs    = LlmPreferences(context)
+        val provider = prefs.selectedProvider
+        val apiKey   = prefs.activeApiKey()
 
         return if (apiKey.isNotBlank()) {
             // ── AI path ──────────────────────────────────────────────────────
-            // Key is present → use GPT-4o for real analysis and refactoring.
-            val service = OpenAiService(apiKey = apiKey)
-            OpenAiCodeReviewRepository(service)
+            val service: LlmService = when (provider) {
+                LlmProvider.OPENAI -> OpenAiService(apiKey = apiKey)
+                LlmProvider.CLAUDE -> ClaudeService(apiKey = apiKey)
+                LlmProvider.GEMINI -> GeminiService(apiKey = apiKey)
+            }
+            AiCodeReviewRepository(service)
         } else {
-            // ── Local fallback path ──────────────────────────────────────────
-            // No key → use the offline rule-based analyser (works without network).
-            val analyser = KotlinCodeAnalyser()
-            CodeReviewRepositoryImpl(analyser)
+            // ── Offline fallback ─────────────────────────────────────────────
+            // No key configured for the selected provider — run locally.
+            CodeReviewRepositoryImpl(KotlinCodeAnalyser())
         }
     }
 }

@@ -7,14 +7,28 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.*
 import com.naveedali.claudecodereview.ui.screens.CodeReviewScreen
+import com.naveedali.claudecodereview.ui.screens.SettingsScreen
 import com.naveedali.claudecodereview.ui.theme.ClaudeCodeReviewTheme
+
+/**
+ * The two top-level destinations in the app.
+ *
+ * We don't use the Navigation component here — with only two screens a simple
+ * enum + `when` expression is lighter and easier to understand.  If more screens
+ * are added, replacing this with NavHost is straightforward.
+ */
+enum class Screen { CODE_REVIEW, SETTINGS }
 
 /**
  * Single-activity entry point.
  *
- * Theme state is owned here so it survives recomposition and can be toggled
- * from anywhere in the tree if needed.  [isSystemInDarkTheme] provides the
- * default so the very first launch respects the device setting.
+ * State owned here:
+ *  • [isDarkTheme]       — survives recomposition, toggled from the top bar.
+ *  • [currentScreen]     — controls which screen is shown.
+ *  • [reviewScreenKey]   — incremented when the user saves Settings, which forces
+ *                          Compose to discard and recreate [CodeReviewScreen]
+ *                          (and its ViewModel) so the new provider is picked up
+ *                          immediately without restarting the app.
  */
 class MainActivity : ComponentActivity() {
 
@@ -23,15 +37,34 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            // Read the system preference once as the initial value
             val systemDark = isSystemInDarkTheme()
-            var isDarkTheme by remember { mutableStateOf(systemDark) }
+            var isDarkTheme     by remember { mutableStateOf(systemDark) }
+            var currentScreen   by remember { mutableStateOf(Screen.CODE_REVIEW) }
+            var reviewScreenKey by remember { mutableIntStateOf(0) }
 
             ClaudeCodeReviewTheme(darkTheme = isDarkTheme) {
-                CodeReviewScreen(
-                    isDarkTheme   = isDarkTheme,
-                    onToggleTheme = { isDarkTheme = !isDarkTheme }
-                )
+                when (currentScreen) {
+                    Screen.CODE_REVIEW -> {
+                        // key() forces a full recomposition of CodeReviewScreen —
+                        // and thus a new ViewModel — whenever reviewScreenKey changes.
+                        // This is the idiomatic Compose way to "reset" a subtree.
+                        key(reviewScreenKey) {
+                            CodeReviewScreen(
+                                isDarkTheme    = isDarkTheme,
+                                onToggleTheme  = { isDarkTheme = !isDarkTheme },
+                                onOpenSettings = { currentScreen = Screen.SETTINGS }
+                            )
+                        }
+                    }
+                    Screen.SETTINGS -> SettingsScreen(
+                        isDarkTheme = isDarkTheme,
+                        onBack = {
+                            // Bump key so the ViewModel is recreated with the new provider
+                            reviewScreenKey++
+                            currentScreen = Screen.CODE_REVIEW
+                        }
+                    )
+                }
             }
         }
     }

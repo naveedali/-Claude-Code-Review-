@@ -1,30 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Adaptive icon foreground — 108 × 108 dp canvas (safe zone: 72 dp centred,
+    i.e. from 18,18 to 90,90).
+
+    Design overview
+    ───────────────
+    Three orbit arcs at radius 38 dp from the icon centre (54, 54), each
+    representing one AI provider:
+
+      • OpenAI  (teal   #10A37F) — top arc,          220° → 320°
+      • Claude  (orange #D97757) — bottom-right arc,  340° → 80°
+      • Gemini  (blue   #4285F4) — bottom-left arc,   100° → 200°
+
+    A coloured dot sits at the midpoint of each arc (at 270°, 30°, 150°
+    respectively), and a "</>" code symbol is centred in the icon.
+
+    Coordinate reference (all in viewport units = dp)
+    ──────────────────────────────────────────────────
+    Centre = (54, 54).  Orbit radius = 38.
+
+    Arc endpoints (clockwise sweep, large-arc = 0):
+      OpenAI  : (24.9, 29.6) → (83.1, 29.6)
+      Claude  : (89.7, 41.0) → (60.6, 91.4)
+      Gemini  : (47.4, 91.4) → (18.3, 41.0)
+
+    Provider dot centres (radius 38 at midpoint angle):
+      OpenAI  @270° : (54.0, 16.0)
+      Claude  @ 30° : (86.9, 73.0)
+      Gemini  @150° : (21.1, 73.0)
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path android:pathData="M31,63.928c0,0 6.4,-11 12.1,-13.1c7.2,-2.6 26,-1.4 26,-1.4l38.1,38.1L107,108.928l-32,-1L31,63.928z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:endX="85.84757"
-                android:endY="92.4963"
-                android:startX="42.9492"
-                android:startY="49.59793"
-                android:type="linear">
-                <item
-                    android:color="#44000000"
-                    android:offset="0.0" />
-                <item
-                    android:color="#00000000"
-                    android:offset="1.0" />
-            </gradient>
-        </aapt:attr>
-    </path>
+
+    <!-- ── Inner lens glow — adds depth behind the code symbol ────────────── -->
     <path
-        android:fillColor="#FFFFFF"
-        android:fillType="nonZero"
-        android:pathData="M65.3,45.828l3.8,-6.6c0.2,-0.4 0.1,-0.9 -0.3,-1.1c-0.4,-0.2 -0.9,-0.1 -1.1,0.3l-3.9,6.7c-6.3,-2.8 -13.4,-2.8 -19.7,0l-3.9,-6.7c-0.2,-0.4 -0.7,-0.5 -1.1,-0.3C38.8,38.328 38.7,38.828 38.9,39.228l3.8,6.6C36.2,49.428 31.7,56.028 31,63.928h46C76.3,56.028 71.8,49.428 65.3,45.828zM43.4,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2c-0.3,-0.7 -0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C45.3,56.528 44.5,57.328 43.4,57.328L43.4,57.328zM64.6,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2s-0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C66.5,56.528 65.6,57.328 64.6,57.328L64.6,57.328z"
-        android:strokeWidth="1"
-        android:strokeColor="#00000000" />
+        android:fillColor="#33000000"
+        android:pathData="M24,54 A30,30 0 1,0 84,54 A30,30 0 1,0 24,54 Z" />
+
+    <!-- ── Subtle outer ring ───────────────────────────────────────────────── -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#33FFFFFF"
+        android:strokeWidth="0.6"
+        android:pathData="M16,54 A38,38 0 1,0 92,54 A38,38 0 1,0 16,54 Z" />
+
+    <!-- ══ OpenAI arc (teal) — top, 220° → 320° clockwise ════════════════════ -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#10A37F"
+        android:strokeWidth="3.2"
+        android:strokeLineCap="round"
+        android:pathData="M 24.9,29.6 A 38,38 0 0 1 83.1,29.6" />
+
+    <!-- OpenAI dot at 270° (top) -->
+    <path
+        android:fillColor="#10A37F"
+        android:pathData="M 50.5,16 A 3.5,3.5 0 1,0 57.5,16 A 3.5,3.5 0 1,0 50.5,16 Z" />
+
+    <!-- ══ Claude arc (orange) — bottom-right, 340° → 80° clockwise ══════════ -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#D97757"
+        android:strokeWidth="3.2"
+        android:strokeLineCap="round"
+        android:pathData="M 89.7,41.0 A 38,38 0 0 1 60.6,91.4" />
+
+    <!-- Claude dot at 30° (bottom-right) -->
+    <path
+        android:fillColor="#D97757"
+        android:pathData="M 83.4,73 A 3.5,3.5 0 1,0 90.4,73 A 3.5,3.5 0 1,0 83.4,73 Z" />
+
+    <!-- ══ Gemini arc (blue) — bottom-left, 100° → 200° clockwise ════════════ -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#4285F4"
+        android:strokeWidth="3.2"
+        android:strokeLineCap="round"
+        android:pathData="M 47.4,91.4 A 38,38 0 0 1 18.3,41.0" />
+
+    <!-- Gemini dot at 150° (bottom-left) -->
+    <path
+        android:fillColor="#4285F4"
+        android:pathData="M 17.6,73 A 3.5,3.5 0 1,0 24.6,73 A 3.5,3.5 0 1,0 17.6,73 Z" />
+
+    <!-- ══ Code symbol  < / >  centred at (54, 54) ════════════════════════════
+         Height: 44 → 64 (20 dp)   Width: 38 → 70 (32 dp)                     -->
+
+    <!-- < (left angle bracket) — white -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M 45,44 L 38,54 L 45,64" />
+
+    <!-- / (forward slash) — red accent -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FF7070"
+        android:strokeWidth="2.8"
+        android:strokeLineCap="round"
+        android:pathData="M 58,44 L 50,64" />
+
+    <!-- > (right angle bracket) — white -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M 63,44 L 70,54 L 63,64" />
+
 </vector>

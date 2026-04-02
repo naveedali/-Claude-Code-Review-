@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit
 class OpenAiService(
     private val apiKey: String,
     private val model: String = MODEL_GPT_4O
-) {
+) : LlmService {
 
     // ── HTTP client ───────────────────────────────────────────────────────────
 
@@ -90,7 +90,7 @@ class OpenAiService(
      * @throws OpenAiException  When the API returns an HTTP error code.
      * @throws RuntimeException When JSON parsing fails unexpectedly.
      */
-    fun review(code: String): ReviewJsonDto {
+    override fun review(code: String): ReviewJsonDto {
         val requestBody = buildRequestBody(code, mode = "review")
         return executeRequest(requestBody)
     }
@@ -103,7 +103,7 @@ class OpenAiService(
      * @throws IOException      On network error.
      * @throws OpenAiException  On API error.
      */
-    fun refactor(code: String): ReviewJsonDto {
+    override fun refactor(code: String): ReviewJsonDto {
         val requestBody = buildRequestBody(code, mode = "refactor")
         return executeRequest(requestBody)
     }
