@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 108 108">
+  <defs>
+    <!-- Dark crimson radial background gradient -->
+    <radialGradient id="bgGrad" cx="54" cy="54" r="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#8B1A1A"/>
+      <stop offset="45%"  stop-color="#5C0A0A"/>
+      <stop offset="75%"  stop-color="#2E0505"/>
+      <stop offset="100%" stop-color="#0B0000"/>
+    </radialGradient>
+    <!-- Clip to rounded-square for the launcher shape preview -->
+    <clipPath id="roundedSquare">
+      <rect x="0" y="0" width="108" height="108" rx="22" ry="22"/>
+    </clipPath>
+  </defs>
+
+  <!-- ── Background ── -->
+  <rect x="0" y="0" width="108" height="108" fill="#0B0000" clip-path="url(#roundedSquare)"/>
+  <circle cx="54" cy="54" r="60" fill="url(#bgGrad)" clip-path="url(#roundedSquare)"/>
+
+  <!-- ── Inner lens glow ── -->
+  <circle cx="54" cy="54" r="30" fill="rgba(0,0,0,0.2)" clip-path="url(#roundedSquare)"/>
+
+  <!-- ── Subtle outer ring ── -->
+  <circle cx="54" cy="54" r="38" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="0.6" clip-path="url(#roundedSquare)"/>
+
+  <!-- ══ OpenAI arc (teal) — top, 220° → 320° ══ -->
+  <!--  Start (220°): (24.9, 29.6)   End (320°): (83.1, 29.6) -->
+  <path d="M 24.9,29.6 A 38,38 0 0 1 83.1,29.6"
+        fill="none" stroke="#10A37F" stroke-width="3.2" stroke-linecap="round"
+        clip-path="url(#roundedSquare)"/>
+  <!-- OpenAI dot at 270° (top) -->
+  <circle cx="54" cy="16" r="3.5" fill="#10A37F" clip-path="url(#roundedSquare)"/>
+
+  <!-- ══ Claude arc (orange) — bottom-right, 340° → 80° ══ -->
+  <!--  Start (340°): (89.7, 41.0)   End (80°): (60.6, 91.4) -->
+  <path d="M 89.7,41.0 A 38,38 0 0 1 60.6,91.4"
+        fill="none" stroke="#D97757" stroke-width="3.2" stroke-linecap="round"
+        clip-path="url(#roundedSquare)"/>
+  <!-- Claude dot at 30° (bottom-right) -->
+  <circle cx="86.9" cy="73" r="3.5" fill="#D97757" clip-path="url(#roundedSquare)"/>
+
+  <!-- ══ Gemini arc (blue) — bottom-left, 100° → 200° ══ -->
+  <!--  Start (100°): (47.4, 91.4)   End (200°): (18.3, 41.0) -->
+  <path d="M 47.4,91.4 A 38,38 0 0 1 18.3,41.0"
+        fill="none" stroke="#4285F4" stroke-width="3.2" stroke-linecap="round"
+        clip-path="url(#roundedSquare)"/>
+  <!-- Gemini dot at 150° (bottom-left) -->
+  <circle cx="21.1" cy="73" r="3.5" fill="#4285F4" clip-path="url(#roundedSquare)"/>
+
+  <!-- ══ Code symbol  < / >  centred at (54, 54) ══ -->
+
+  <!-- < white -->
+  <polyline points="45,44 38,54 45,64"
+            fill="none" stroke="#FFFFFF" stroke-width="2.8"
+            stroke-linecap="round" stroke-linejoin="round"
+            clip-path="url(#roundedSquare)"/>
+
+  <!-- / red accent -->
+  <line x1="58" y1="44" x2="50" y2="64"
+        stroke="#FF7070" stroke-width="2.8" stroke-linecap="round"
+        clip-path="url(#roundedSquare)"/>
+
+  <!-- > white -->
+  <polyline points="63,44 70,54 63,64"
+            fill="none" stroke="#FFFFFF" stroke-width="2.8"
+            stroke-linecap="round" stroke-linejoin="round"
+            clip-path="url(#roundedSquare)"/>
+
+  <!-- ── Legend labels (SVG preview only — not in the Android drawable) ── -->
+  <text x="54" y="103" font-family="sans-serif" font-size="3.5" fill="#888" text-anchor="middle">
+    ● OpenAI  ● Claude  ● Gemini
+  </text>
+</svg>
