@@ -1,5 +1,3 @@
-import java.util.Properties
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -9,32 +7,19 @@ plugins {
 }
 
 android {
-    namespace = "com.naveedali.claudecodereview"
+    namespace = "com.naveedali.codereview"
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId = "com.naveedali.claudecodereview"
+        applicationId = "com.naveedali.codereview"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        // ── Phase 3: OpenAI API key ───────────────────────────────────────────
-        // local.properties is a Java Properties file — it must be loaded explicitly.
-        // project.findProperty() only reads gradle.properties, NOT local.properties,
-        // so we parse the file ourselves using java.util.Properties.
-        val localProps = Properties().also { props ->
-            val localPropsFile = rootProject.file("local.properties")
-            if (localPropsFile.exists()) {
-                props.load(localPropsFile.inputStream())
-            }
-        }
-        val openAiKey = localProps.getProperty("OPENAI_API_KEY") ?: ""
-        buildConfigField("String", "OPENAI_API_KEY", "\"$openAiKey\"")
     }
 
     buildTypes {
@@ -55,7 +40,6 @@ android {
     }
     buildFeatures {
         compose = true
-        // Enables BuildConfig generation (needed for BuildConfig.OPENAI_API_KEY)
         buildConfig = true
     }
 }
